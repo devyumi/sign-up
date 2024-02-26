@@ -13,6 +13,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class SignUpService {
@@ -30,10 +32,10 @@ public class SignUpService {
     public String getKakaoAccessToken(String code) {
         String accessToken = "";
         String refreshToken;
-        String requestURL = "https://kauth.kakao.com/oauth/token";
+        String requestUrl = "https://kauth.kakao.com/oauth/token";
 
         try {
-            URL url = new URL(requestURL);
+            URL url = new URL(requestUrl);
 
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
@@ -74,5 +76,43 @@ public class SignUpService {
             e.printStackTrace();
         }
         return accessToken;
+    }
+
+    public Map<String, String> getUserInfo(String accessToken) {
+        Map<String, String> userInfo = new HashMap<>();
+        String requestUrl = "https://kapi.kakao.com/v2/user/me";
+
+        try {
+            URL url = new URL(requestUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestProperty("Authorization", "Bearer " + accessToken);
+            connection.setRequestProperty("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+            connection.setDoOutput(true);
+
+            logger.info("UserInfo responseCode: {}", connection.getResponseCode());
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String line;
+            StringBuilder result = new StringBuilder();
+
+            while ((line = br.readLine()) != null) {
+                result.append(line);
+            }
+            logger.info("response body = {}", result);
+
+            JsonObject object = (JsonObject) JsonParser.parseString(result.toString());
+            String email = object.getAsJsonObject().get("kakao_account").getAsJsonObject().get("email").getAsString();
+            String nickname = object.getAsJsonObject().get("kakao_account").getAsJsonObject().get("profile").getAsJsonObject().get("nickname").getAsString();
+
+            userInfo.put("email", email);
+            userInfo.put("nickname", nickname);
+            logger.info("email = {}", email);
+            logger.info("nickname = {}", nickname);
+            br.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return userInfo;
     }
 }

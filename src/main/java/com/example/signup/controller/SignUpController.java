@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("signup")
 @AllArgsConstructor
@@ -21,6 +23,7 @@ public class SignUpController {
     public ResponseEntity<String> signUpKakao(@RequestParam String code) {
         logger.info("code = {}", code);
         String accessToken = signUpService.getKakaoAccessToken(code);
+        Map<String, String> userInfo = signUpService.getUserInfo(accessToken);
 
         return ResponseEntity.ok("성공");
     }
