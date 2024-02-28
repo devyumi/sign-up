@@ -17,16 +17,14 @@ public class Member extends Time {
     private String email;
     private String password;
     private String nickname;
-    private Integer status;
 
     @Builder
-    public Member(Long id, String platformType, String accessToken, String email, String password, String nickname, Integer status) {
+    public Member(Long id, String platformType, String accessToken, String email, String password, String nickname) {
         this.id = id;
         this.platformType = platformType;
         this.accessToken = accessToken;
         this.email = email;
         this.password = password;
         this.nickname = nickname;
-        this.status = status;
     }
 }
