@@ -1,10 +1,17 @@
 package com.example.signup.service;
 
+import com.example.signup.domain.Member;
+import com.example.signup.domain.MemberRole;
+import com.example.signup.dto.MemberSignupDto;
+import com.example.signup.repository.MemberRepository;
+import com.example.signup.repository.MemberRoleRepository;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -17,7 +24,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class SignUpService {
+    private final MemberRepository memberRepository;
+    private final MemberRoleRepository memberRoleRepository;
+    private final PasswordEncoder passwordEncoder;
     private final Logger logger = LoggerFactory.getLogger(SignUpService.class);
 
     @Value("${kakao.client.id}")
@@ -28,6 +39,40 @@ public class SignUpService {
 
     @Value("${kakao.client.secret}")
     private String clientSecret;
+
+    public Long signupOwn(MemberSignupDto memberSignupDto) {
+        checkDuplicationMember(memberSignupDto);
+        comparePassword(memberSignupDto);
+
+        Member member = Member.builder()
+                .platformType("OWN")
+                .email(memberSignupDto.getEmail())
+                .password(passwordEncoder.encode(memberSignupDto.getPassword()))
+                .nickname(memberSignupDto.getNickname())
+                .build();
+
+        memberRepository.save(member);
+
+        MemberRole memberRole = MemberRole.builder()
+                .role_name("ROLE_USER")
+                .member(member)
+                .build();
+
+        return memberRoleRepository.save(memberRole).getId();
+    }
+
+    private void checkDuplicationMember(MemberSignupDto memberSignupDto) {
+        memberRepository.findByEmail(memberSignupDto.getEmail())
+                .ifPresent(m -> {
+                    throw new IllegalStateException("이미 존재하는 회원입니다.");
+                });
+    }
+
+    private void comparePassword(MemberSignupDto memberSignupDto) {
+        if (!memberSignupDto.getPassword().equals(memberSignupDto.getCheckedPassword())) {
+            throw new IllegalStateException("비밀번호가 일치하지 않습니다.");
+        }
+    }
 
     public String getKakaoAccessToken(String code) {
         String accessToken = "";
