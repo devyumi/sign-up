@@ -54,7 +54,7 @@ public class SignUpService {
         memberRepository.save(member);
 
         MemberRole memberRole = MemberRole.builder()
-                .role_name("ROLE_USER")
+                .roleName("ROLE_USER")
                 .member(member)
                 .build();
 

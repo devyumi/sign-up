@@ -12,16 +12,16 @@ public class MemberRole {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String role_name;
+    private String roleName;
 
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;
 
     @Builder
-    public MemberRole(Long id, String role_name, Member member) {
+    public MemberRole(Long id, String roleName, Member member) {
         this.id = id;
-        this.role_name = role_name;
+        this.roleName = roleName;
         this.member = member;
     }
 }
