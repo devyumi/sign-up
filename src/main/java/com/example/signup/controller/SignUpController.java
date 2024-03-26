@@ -45,6 +45,7 @@ public class SignUpController {
         }
 
         signUpService.signupOwn(memberSignupDto);
+        logger.info("회원가입(자체) 완료: {}", memberSignupDto.getEmail());
         return "redirect:/home";
     }
 
