@@ -27,12 +27,4 @@ public class MemberSignupDto {
     @NotBlank(message = "닉네임을 입력하세요.")
     @Size(min = 2, max = 10, message = "닉네임은 2자 이상, 10자 이하만 가능합니다.")
     private String nickname;
-
-    @Builder
-    public MemberSignupDto(String email, String password, String checkedPassword, String nickname) {
-        this.email = email;
-        this.password = password;
-        this.checkedPassword = checkedPassword;
-        this.nickname = nickname;
-    }
 }

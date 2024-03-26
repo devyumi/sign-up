@@ -3,38 +3,49 @@ package com.example.signup.controller;
 import com.example.signup.dto.MemberSignupDto;
 import com.example.signup.service.SignUpService;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@RestController
+@Controller
 @RequestMapping("signup")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class SignUpController {
     private final SignUpService signUpService;
     private final Logger logger = LoggerFactory.getLogger(SignUpController.class);
 
+    @GetMapping
+    public String signupOwn() {
+        return "signupForm";
+    }
+
     @PostMapping
-    public ResponseEntity<MemberSignupDto> signupOwn(@RequestBody @Valid MemberSignupDto memberSignupDto, BindingResult bindingResult) {
+    public String signupOwn(@Valid MemberSignupDto memberSignupDto, BindingResult bindingResult, Model model) {
         if (bindingResult.hasErrors()) {
             List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+            Map<String, String> errorMessage = new HashMap<>();
+
             for (FieldError fieldError : fieldErrors) {
                 logger.error("{}: {}", fieldError.getField(), fieldError.getDefaultMessage());
+                errorMessage.put(fieldError.getField(), fieldError.getDefaultMessage());
+
             }
-            return ResponseEntity.badRequest()
-                    .body(MemberSignupDto.builder().build());
+            model.addAttribute("errorMessage", errorMessage);
+            return "signupForm";
         }
 
         signUpService.signupOwn(memberSignupDto);
-        return ResponseEntity.ok()
-                .body(memberSignupDto);
+        return "redirect:/signupForm";
     }
 
     @GetMapping("kakao")
