@@ -45,7 +45,7 @@ public class SignUpController {
         }
 
         signUpService.signupOwn(memberSignupDto);
-        return "redirect:/signupForm";
+        return "redirect:/home";
     }
 
     @GetMapping("kakao")
