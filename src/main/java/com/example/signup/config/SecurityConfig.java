@@ -1,5 +1,8 @@
 package com.example.signup.config;
 
+import com.example.signup.config.auth.CustomUserDetailsService;
+import com.example.signup.config.auth.SignInFail;
+import com.example.signup.config.auth.SignInSuccess;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.Customizer;
@@ -15,6 +18,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class SecurityConfig {
+    private final CustomUserDetailsService customUserDetailsService;
+    private final SignInSuccess signInSuccess;
+    private final SignInFail signInFail;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -22,8 +29,21 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                         authorizationManagerRequestMatcherRegistry
-                                .requestMatchers("signup/**").permitAll()
-                                .anyRequest().permitAll());
+                                .requestMatchers("/signup/**", "/signin/**").permitAll()
+                                .anyRequest().permitAll())
+                .formLogin(AbstractHttpConfigurer ->
+                        AbstractHttpConfigurer
+                                .loginPage("/signin")
+                                .loginProcessingUrl("/signin")
+                                .defaultSuccessUrl("/home")
+                                .failureUrl("/signin?error=true")
+                                .failureForwardUrl("/signin?error=true")
+                                .successHandler(signInSuccess)
+                                .failureHandler(signInFail))
+                .logout(httpSecurityLogoutConfigurer ->
+                        httpSecurityLogoutConfigurer
+                                .logoutSuccessUrl("/home"))
+                .userDetailsService(customUserDetailsService);
         return http.build();
     }
 
