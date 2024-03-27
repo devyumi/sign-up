@@ -36,8 +36,6 @@ public class SecurityConfig {
                                 .loginPage("/signin")
                                 .loginProcessingUrl("/signin")
                                 .defaultSuccessUrl("/home")
-                                .failureUrl("/signin?error=true")
-                                .failureForwardUrl("/signin?error=true")
                                 .successHandler(signInSuccess)
                                 .failureHandler(signInFail))
                 .logout(httpSecurityLogoutConfigurer ->

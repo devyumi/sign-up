@@ -18,14 +18,10 @@
     <br><br><br>
 
     <form name="signinForm" action="/signin" method="post" onsubmit="checkPassword()">
-        <c:if test="${!empty errorMessage}">
-            <script type="text/javascript">
-                const message = "${errorMessage}";
-                swal(message);
-            </script>
-        </c:if>
-
         <table>
+            <tr>
+                <span style="color: #ff4238">${errorMessage}</span>
+            </tr>
             <tr>
                 <td>아이디</td>
                 <td>
