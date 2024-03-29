@@ -23,7 +23,7 @@
         <a href="/signout">로그아웃</a><p/>
     </sec:authorize>
     <sec:authorize access="hasRole('ROLE_ADMIN')">
-        <a href="/admin">회원조회</a>
+        <a href="/search/members">회원조회</a>
     </sec:authorize>
 </body>
 </html>

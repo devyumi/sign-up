@@ -32,6 +32,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                         authorizationManagerRequestMatcherRegistry
                                 .requestMatchers("/signup/**", "/signin/**").permitAll()
+                                .requestMatchers("/search/members").hasRole("ADMIN")
                                 .anyRequest().permitAll())
                 .formLogin(AbstractHttpConfigurer ->
                         AbstractHttpConfigurer
