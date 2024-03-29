@@ -3,6 +3,7 @@ package com.example.signup.config;
 import com.example.signup.config.auth.CustomUserDetailsService;
 import com.example.signup.config.auth.SignInFail;
 import com.example.signup.config.auth.SignInSuccess;
+import com.example.signup.config.auth.SignOutSuccess;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.Customizer;
@@ -21,6 +22,7 @@ public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
     private final SignInSuccess signInSuccess;
     private final SignInFail signInFail;
+    private final SignOutSuccess signOutSuccess;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -40,7 +42,9 @@ public class SecurityConfig {
                                 .failureHandler(signInFail))
                 .logout(httpSecurityLogoutConfigurer ->
                         httpSecurityLogoutConfigurer
-                                .logoutSuccessUrl("/home"))
+                                .logoutUrl("/signout")
+                                .logoutSuccessUrl("/home")
+                                .logoutSuccessHandler(signOutSuccess))
                 .userDetailsService(customUserDetailsService);
         return http.build();
     }

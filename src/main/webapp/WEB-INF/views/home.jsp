@@ -1,5 +1,4 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <% request.setCharacterEncoding("UTF-8"); %>
 
@@ -21,7 +20,7 @@
         <a href="/signin">로그인</a>
     </sec:authorize>
     <sec:authorize access="isAuthenticated()">
-        <a href="/logout">로그아웃</a><p/>
+        <a href="/signout">로그아웃</a><p/>
     </sec:authorize>
     <sec:authorize access="hasRole('ROLE_ADMIN')">
         <a href="/admin">회원조회</a>
