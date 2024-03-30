@@ -21,6 +21,7 @@
     </sec:authorize>
     <sec:authorize access="isAuthenticated()">
         <a href="/signout">로그아웃</a><p/>
+        <a href="/guestbook">방명록</a>
     </sec:authorize>
     <sec:authorize access="hasRole('ROLE_ADMIN')">
         <a href="/search/members">회원조회</a>
