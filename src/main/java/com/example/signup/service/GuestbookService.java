@@ -8,6 +8,7 @@ import com.example.signup.repository.GuestbookRepository;
 import com.example.signup.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,7 @@ public class GuestbookService {
     private final GuestbookRepository guestbookRepository;
     private final MemberRepository memberRepository;
 
+    @Transactional
     public Long saveGuestbook(GuestbookRequestDto guestbookDto, Optional<Member> member) {
         Guestbook guestbook = Guestbook.builder()
                 .content(guestbookDto.getContent())

@@ -18,9 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -32,25 +30,21 @@ public class GuestbookController {
 
     @GetMapping
     public String findGuestbook(Model model){
-        List<GuestbookResponseDto> guestbookList = guestbookService.findGuestbook();
-        model.addAttribute("guestbookList", guestbookList);
+        List<GuestbookResponseDto> guestbooksList = guestbookService.findGuestbook();
+        model.addAttribute("guestbooksList", guestbooksList);
 
         return "guestbook";
     }
 
     @PostMapping("write")
     public String WriteGuestbook(@AuthenticationPrincipal CustomUserDetails auth,
-                                 @Valid GuestbookRequestDto guestbookDto, BindingResult bindingResult, Model model){
+                                 @Valid GuestbookRequestDto guestbookDto, BindingResult bindingResult){
         if (bindingResult.hasErrors()) {
             List<FieldError> fieldErrors = bindingResult.getFieldErrors();
-            Map<String, String> errorMessage = new HashMap<>();
-
             for (FieldError fieldError : fieldErrors) {
                 log.error("{}: {}", fieldError.getField(), fieldError.getDefaultMessage());
-                errorMessage.put(fieldError.getField(), fieldError.getDefaultMessage());
             }
-            model.addAttribute("errorMessage", errorMessage);
-            return "guestbook";
+            return "redirect:/guestbook";
         }
 
         Optional<Member> member = guestbookService.getMember(auth.getUsername());
