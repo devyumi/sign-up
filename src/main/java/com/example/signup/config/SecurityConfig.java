@@ -7,7 +7,6 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
-import org.springframework.security.config.annotation.web.configurers.ExceptionHandlingConfigurer;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -21,6 +20,7 @@ public class SecurityConfig {
     private final SignInSuccess signInSuccess;
     private final SignInFail signInFail;
     private final SignOutSuccess signOutSuccess;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
 
     @Bean
@@ -47,7 +47,9 @@ public class SecurityConfig {
                                 .logoutSuccessUrl("/home")
                                 .logoutSuccessHandler(signOutSuccess))
                 .exceptionHandling(ExceptionHandlingConfigurer ->
-                        ExceptionHandlingConfigurer.accessDeniedHandler(accessDeniedHandler))
+                        ExceptionHandlingConfigurer
+                                .authenticationEntryPoint(authenticationEntryPoint)
+                                .accessDeniedHandler(accessDeniedHandler))
                 .userDetailsService(customUserDetailsService);
         return http.build();
     }
