@@ -1,15 +1,13 @@
 package com.example.signup.config;
 
-import com.example.signup.config.auth.CustomUserDetailsService;
-import com.example.signup.config.auth.SignInFail;
-import com.example.signup.config.auth.SignInSuccess;
-import com.example.signup.config.auth.SignOutSuccess;
+import com.example.signup.config.auth.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
+import org.springframework.security.config.annotation.web.configurers.ExceptionHandlingConfigurer;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -23,6 +21,7 @@ public class SecurityConfig {
     private final SignInSuccess signInSuccess;
     private final SignInFail signInFail;
     private final SignOutSuccess signOutSuccess;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -47,6 +46,8 @@ public class SecurityConfig {
                                 .logoutUrl("/signout")
                                 .logoutSuccessUrl("/home")
                                 .logoutSuccessHandler(signOutSuccess))
+                .exceptionHandling(ExceptionHandlingConfigurer ->
+                        ExceptionHandlingConfigurer.accessDeniedHandler(accessDeniedHandler))
                 .userDetailsService(customUserDetailsService);
         return http.build();
     }
