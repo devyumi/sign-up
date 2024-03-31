@@ -7,6 +7,8 @@ import com.example.signup.dto.GuestbookResponseDto;
 import com.example.signup.repository.GuestbookRepository;
 import com.example.signup.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,8 +31,8 @@ public class GuestbookService {
         return guestbookRepository.save(guestbook).getId();
     }
 
-    public List<GuestbookResponseDto> findGuestbook() {
-        List<Guestbook> guestbooks = guestbookRepository.findAll();
+    public List<GuestbookResponseDto> findGuestbook(Pageable pageable) {
+        Page<Guestbook> guestbooks = guestbookRepository.findAll(pageable);
         List<GuestbookResponseDto> guestbooksDto = new ArrayList<>();
 
         for (Guestbook guestbook : guestbooks) {
@@ -45,5 +47,9 @@ public class GuestbookService {
 
     public Optional<Member> getMember(String username) {
         return memberRepository.findByEmail(username);
+    }
+
+    public Long getCount(){
+        return guestbookRepository.count();
     }
 }

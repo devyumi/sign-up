@@ -28,16 +28,26 @@
 
     <a href="/home">홈으로</a><br><br>
 
-    <c:forEach items="${guestbooksList}" var="guestbook" varStatus="status">
-        <div><${status.count}></div><br>
+    <c:forEach items="${guestbooksList}" var="guestbook">
         <div style="font-style: italic">${guestbook.nickname}</div>
         <div>${guestbook.content}</div>
         <div><javatime:format value="${guestbook.createDate}" pattern="yyyy-MM-dd HH:mm"/></div>
-        <div>- - - - - - - - - - - - - - - - - - - - - - - - - - - -</div><br>
-    </c:forEach><br><br>
+        <div>- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - </div><br>
+    </c:forEach><br>
+
+    <c:forEach begin="${startBlockPage}" end="${endBlockPage}" var="i">
+        <c:choose>
+            <c:when test="${guestbook.pageable.pageNumber+1 == i}">
+                <a href="/guestbook?page=${i-1}">${i}</a>
+            </c:when>
+            <c:otherwise>
+                <a href="/guestbook?page=${i-1}">${i}</a>
+            </c:otherwise>
+        </c:choose>
+    </c:forEach><br>
 
     <form name="guestbook" action="/guestbook/write" method="post" onsubmit="checkContent()">
-        <div>
+        <div><br>
             <textarea name="content" cols="50" rows="5" style="resize: none" placeholder="내용을 입력해주세요."></textarea>
         </div>
         <div>
