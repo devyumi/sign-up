@@ -31,6 +31,7 @@ public class SignInSuccess implements AuthenticationSuccessHandler {
         log.info("token: {}", token.toString());
 
         Cookie jwtCookie = new Cookie(JwtProvider.AUTHORIZATION_HEADER, URLEncoder.encode(token, "UTF-8"));
+        jwtCookie.setMaxAge(60 * 30);
         response.addCookie(jwtCookie);
         response.sendRedirect("home");
     }
