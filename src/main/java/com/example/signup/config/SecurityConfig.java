@@ -21,11 +21,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
-    private final SignInSuccess signInSuccess;
-    private final SignInFail signInFail;
-    private final SignOutSuccess signOutSuccess;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
-    private final CustomAccessDeniedHandler accessDeniedHandler;
     private final JwtProvider jwtProvider;
 
     @Bean
@@ -44,19 +40,19 @@ public class SecurityConfig {
                                 .loginPage("/signin")
                                 .loginProcessingUrl("/signin")
                                 .defaultSuccessUrl("/home")
-                                .successHandler(signInSuccess)
-                                .failureHandler(signInFail))
+                                .successHandler(new SignInSuccess(jwtProvider))
+                                .failureHandler(new SignInFail()))
                 .logout(httpSecurityLogoutConfigurer ->
                         httpSecurityLogoutConfigurer
                                 .logoutUrl("/signout")
                                 .logoutSuccessUrl("/home")
                                 .deleteCookies(JwtProvider.AUTHORIZATION_HEADER)
-                                .logoutSuccessHandler(signOutSuccess))
+                                .logoutSuccessHandler(new SignOutSuccess()))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .exceptionHandling(ExceptionHandlingConfigurer ->
                         ExceptionHandlingConfigurer
-                                .authenticationEntryPoint(authenticationEntryPoint)
-                                .accessDeniedHandler(accessDeniedHandler))
+                                .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
+                                .accessDeniedHandler(new CustomAccessDeniedHandler()))
                 .userDetailsService(customUserDetailsService)
                 .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
         return http.build();
