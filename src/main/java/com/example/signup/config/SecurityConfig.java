@@ -21,7 +21,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
-    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final JwtProvider jwtProvider;
 
     @Bean
@@ -34,7 +33,7 @@ public class SecurityConfig {
                                 .requestMatchers("/signup/**", "/signin/**").permitAll()
                                 .requestMatchers("/search/members").hasRole("ADMIN")
                                 .requestMatchers("/guestbook/**").hasAnyRole("ADMIN", "USER")
-                                .anyRequest().permitAll())
+                                .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer ->
                         AbstractHttpConfigurer
                                 .loginPage("/signin")
