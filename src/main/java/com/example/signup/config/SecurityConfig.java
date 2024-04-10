@@ -33,7 +33,7 @@ public class SecurityConfig {
                                 .requestMatchers("/signup/**", "/signin/**").permitAll()
                                 .requestMatchers("/search/members").hasRole("ADMIN")
                                 .requestMatchers("/guestbook/**").hasAnyRole("ADMIN", "USER")
-                                .anyRequest().authenticated())
+                                .anyRequest().permitAll())
                 .formLogin(AbstractHttpConfigurer ->
                         AbstractHttpConfigurer
                                 .loginPage("/signin")
