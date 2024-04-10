@@ -1,9 +1,10 @@
 package com.example.signup.config.jwt;
 
-import com.example.signup.config.auth.CustomUserDetails;
+import com.example.signup.config.auth.CustomUserDetailsService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.Cookie;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +12,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.security.Key;
 import java.util.*;
@@ -19,14 +22,19 @@ import java.util.stream.Collectors;
 
 @Component
 public class JwtProvider {
+    public static final String AUTHORIZATION_HEADER = "Authorization";
+    public static final String BEARER_PREFIX = "Bearer ";
     private static final String AUTHORITIES_KEY = "auth";
     private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 30;
     private final Key key;
+
+    private final CustomUserDetailsService customUserDetailsService;
     private final Logger log = LoggerFactory.getLogger(JwtProvider.class);
 
-    public JwtProvider(@Value("${jwt.secret}") String secretKey) {
+    public JwtProvider(@Value("${jwt.secret}") String secretKey, CustomUserDetailsService customUserDetailsService) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
+        this.customUserDetailsService = customUserDetailsService;
     }
 
     public String createToken(Authentication authentication) {
@@ -38,40 +46,39 @@ public class JwtProvider {
         header.put("typ", "JWT");
         header.put("alg", "HS256");
 
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("username", authentication.getName());
-        claims.put(AUTHORITIES_KEY, authorities);
-
-        String accessToken = Jwts.builder()
-                .setHeader(header)
-                .setClaims(claims)
-                .setExpiration(new Date(new Date().getTime() + ACCESS_TOKEN_EXPIRE_TIME))
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
-
-        return accessToken;
+        return BEARER_PREFIX +
+                Jwts.builder()
+                        .setHeader(header)
+                        .setSubject(authentication.getName())
+                        .claim(AUTHORITIES_KEY, authorities)
+                        .setExpiration(new Date(new Date().getTime() + ACCESS_TOKEN_EXPIRE_TIME))
+                        .signWith(key, SignatureAlgorithm.HS256)
+                        .compact();
     }
 
-    public Authentication getAuthentication(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+    public String resolveToken(Cookie[] cookies) {
+        String bearerToken = "";
 
-        Collection<? extends GrantedAuthority> authorities =
-                Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList());
+        if (cookies != null) {
+            for (Cookie c : cookies) {
+                String name = c.getName().toString();
+                if (name.equals(AUTHORIZATION_HEADER.toString())) {
+                    bearerToken = c.getValue();
+                }
+            }
+        }
 
-        log.info("claims.getSubject: {}", claims.getSubject());
-        log.info("claims.getId: {}", claims.getId());
-
-        CustomUserDetails principal = new CustomUserDetails(claims.getSubject(), "", authorities);
-        return new UsernamePasswordAuthenticationToken(principal, "", authorities);
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX.replace(" ", "+"))) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
-        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+        } catch (SecurityException | MalformedJwtException e) {
             log.error("잘못된 JWT 서명입니다.");
         } catch (ExpiredJwtException e) {
             log.error("만료된 JWT 서명입니다.");
@@ -81,5 +88,18 @@ public class JwtProvider {
             log.error("잘못된 JWT 서명입니다.");
         }
         return false;
+    }
+
+    public Authentication getAuthentication(String token) {
+        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+        log.info("claims.getSubject: {}", claims.getSubject());
+
+        Collection<? extends GrantedAuthority> authorities =
+                Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList());
+
+        UserDetails principal = customUserDetailsService.loadUserByUsername(claims.getSubject());
+        return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
 }
