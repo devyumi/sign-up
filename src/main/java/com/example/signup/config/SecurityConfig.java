@@ -50,6 +50,7 @@ public class SecurityConfig {
                         httpSecurityLogoutConfigurer
                                 .logoutUrl("/signout")
                                 .logoutSuccessUrl("/home")
+                                .deleteCookies(JwtProvider.AUTHORIZATION_HEADER)
                                 .logoutSuccessHandler(signOutSuccess))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .exceptionHandling(ExceptionHandlingConfigurer ->
