@@ -6,7 +6,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -47,14 +46,5 @@ public class SignUpController {
         signUpService.signupOwn(memberSignupDto);
         logger.info("회원가입(자체) 완료: {}", memberSignupDto.getEmail());
         return "redirect:/home";
-    }
-
-    @GetMapping("kakao")
-    public ResponseEntity<String> signUpKakao(@RequestParam String code) {
-        logger.info("code = {}", code);
-        String accessToken = signUpService.getKakaoAccessToken(code);
-        Map<String, String> userInfo = signUpService.getUserInfo(accessToken);
-
-        return ResponseEntity.ok("성공");
     }
 }
