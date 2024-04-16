@@ -17,6 +17,14 @@
     <strong>로그인</strong>
     <br><br><br>
 
+    <div>
+        <a href="https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}">
+            <img src="static/kakao_login.png">
+        </a>
+    </div>
+
+    <br><br>
+    <div>
     <form name="signinForm" action="/signin" method="post" onsubmit="checkPassword()">
         <table>
             <tr>
@@ -42,6 +50,7 @@
             <input type="submit" value="로그인">
         </td>
     </form>
+    </div>
 </div>
 </body>
 </html>
