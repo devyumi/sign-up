@@ -3,6 +3,7 @@ package com.example.signup.config;
 import com.example.signup.config.auth.*;
 import com.example.signup.config.jwt.JwtAuthenticationFilter;
 import com.example.signup.config.jwt.JwtProvider;
+import com.example.signup.config.oauth.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.Customizer;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
+    private final CustomOAuth2UserService customOAuth2UserService;
     private final JwtProvider jwtProvider;
 
     @Bean
@@ -41,6 +43,12 @@ public class SecurityConfig {
                                 .defaultSuccessUrl("/home")
                                 .successHandler(new SignInSuccess(jwtProvider))
                                 .failureHandler(new SignInFail()))
+                .oauth2Login(httpSecurityOAuth2LoginConfigurer ->
+                        httpSecurityOAuth2LoginConfigurer
+                                .loginPage("signin/kakao")
+                                .userInfoEndpoint(userInfoEndpointConfig ->
+                                        userInfoEndpointConfig
+                                                .userService(customOAuth2UserService)))
                 .logout(httpSecurityLogoutConfigurer ->
                         httpSecurityLogoutConfigurer
                                 .logoutUrl("/signout")
