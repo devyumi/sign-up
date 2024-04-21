@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -30,6 +31,9 @@ public class SecurityConfig {
         http
                 .csrf(CsrfConfigurer::disable)
                 .cors(Customizer.withDefaults())
+                .sessionManagement(httpSecuritySessionManagementConfigurer ->
+                        httpSecuritySessionManagementConfigurer
+                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                         authorizationManagerRequestMatcherRegistry
                                 .requestMatchers("/signup/**", "/signin/**").permitAll()
@@ -45,7 +49,8 @@ public class SecurityConfig {
                                 .failureHandler(new SignInFail()))
                 .oauth2Login(httpSecurityOAuth2LoginConfigurer ->
                         httpSecurityOAuth2LoginConfigurer
-                                .loginPage("signin/kakao")
+                                .loginPage("/signin")
+                                .defaultSuccessUrl("/home")
                                 .userInfoEndpoint(userInfoEndpointConfig ->
                                         userInfoEndpointConfig
                                                 .userService(customOAuth2UserService)))
