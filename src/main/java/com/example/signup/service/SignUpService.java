@@ -21,7 +21,6 @@ public class SignUpService {
         comparePassword(memberSignupDto);
 
         Member member = Member.builder()
-                .platformType("OWN")
                 .email(memberSignupDto.getEmail())
                 .password(passwordEncoder.encode(memberSignupDto.getPassword()))
                 .nickname(memberSignupDto.getNickname())
