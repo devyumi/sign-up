@@ -18,7 +18,7 @@
     <br><br><br>
 
     <div>
-        <a href="https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}">
+        <a href="/oauth2/authorization/kakao">
             <img src="static/kakao_login.png">
         </a>
     </div>
