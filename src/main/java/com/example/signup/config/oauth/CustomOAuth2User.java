@@ -1,12 +1,14 @@
 package com.example.signup.config.oauth;
 
 import lombok.Builder;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.Collection;
 import java.util.Map;
 
+@Getter
 public class CustomOAuth2User implements OAuth2User {
     private String username;
     private String name;
@@ -19,16 +21,12 @@ public class CustomOAuth2User implements OAuth2User {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
-    }
-
-    public String getUsername() {
-        return username;
+        return authorities;
     }
 
     @Override
     public String getName() {
-        return null;
+        return name;
     }
 
     @Builder
