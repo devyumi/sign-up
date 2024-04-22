@@ -7,6 +7,13 @@
 
 <html>
 <head>
+    <style>
+        .imgSize{
+            width: 200px;
+            height: 45px;
+        }
+    </style>
+
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>로그인</title>
 
@@ -19,11 +26,17 @@
 
     <div>
         <a href="/oauth2/authorization/kakao">
-            <img src="static/kakao_login.png">
+            <img src="static/kakao_login.png" class="imgSize">
         </a>
     </div>
 
-    <br><br>
+    <div>
+        <a href="/oauth2/authorization/naver">
+            <img src="static/naver_login.png" class="imgSize">
+        </a>
+    </div>
+
+    <br>
     <div>
     <form name="signinForm" action="/signin" method="post" onsubmit="checkPassword()">
         <table>
