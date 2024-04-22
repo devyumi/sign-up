@@ -3,6 +3,7 @@ package com.example.signup.config.oauth;
 import com.example.signup.domain.Member;
 import com.example.signup.domain.MemberRole;
 import com.example.signup.dto.KakaoResponse;
+import com.example.signup.dto.NaverResponse;
 import com.example.signup.dto.OAuth2Response;
 import com.example.signup.repository.MemberRepository;
 import com.example.signup.repository.MemberRoleRepository;
@@ -36,6 +37,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         if (registrationId.equals("kakao")) {
             oAuth2Response = new KakaoResponse(oAuth2User.getAttributes());
+        } else if (registrationId.equals("naver")) {
+            oAuth2Response = new NaverResponse(oAuth2User.getAttributes());
         } else {
             log.error("OAuth2 로그인 실패");
             return null;
