@@ -25,14 +25,20 @@
     <br><br><br>
 
     <div>
+        <a href="/oauth2/authorization/naver">
+            <img src="static/naver_login.png" class="imgSize">
+        </a>
+    </div>
+
+    <div>
         <a href="/oauth2/authorization/kakao">
             <img src="static/kakao_login.png" class="imgSize">
         </a>
     </div>
 
     <div>
-        <a href="/oauth2/authorization/naver">
-            <img src="static/naver_login.png" class="imgSize">
+        <a href="/oauth2/authorization/google">
+            <img src="static/google_login.png" class="imgSize">
         </a>
     </div>
 
