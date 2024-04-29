@@ -19,7 +19,7 @@ public class SignOutSuccess implements LogoutSuccessHandler {
 
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        log.info("{} 로그아웃", authentication.getName());
+        log.info("로그아웃 완료");
         response.sendRedirect("home");
     }
 }
