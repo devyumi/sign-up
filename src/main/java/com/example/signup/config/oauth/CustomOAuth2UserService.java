@@ -1,5 +1,6 @@
 package com.example.signup.config.oauth;
 
+import com.example.signup.config.auth.CustomUserDetails;
 import com.example.signup.domain.Member;
 import com.example.signup.domain.MemberRole;
 import com.example.signup.dto.GoogleResponse;
@@ -40,7 +41,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             oAuth2Response = new KakaoResponse(oAuth2User.getAttributes());
         } else if (registrationId.equals("naver")) {
             oAuth2Response = new NaverResponse(oAuth2User.getAttributes());
-        } else if(registrationId.equals("google")){
+        } else if (registrationId.equals("google")) {
             oAuth2Response = new GoogleResponse(oAuth2User.getAttributes());
         } else {
             log.error("OAuth2 로그인 실패");
@@ -51,25 +52,24 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private Member createMember(OAuth2Response oAuth2Response) {
         String username = oAuth2Response.getProvider() + "_" + oAuth2Response.getEmail();
-        Optional<Member> tmpMember = memberRepository.findByEmail(username);
-        Member member;
+        Optional<Member> member = memberRepository.findByEmail(username);
 
-        if (!tmpMember.isPresent()) {
-            member = Member.builder()
+        if (!member.isPresent()) {
+            Member newMember = Member.builder()
                     .email(username)
                     .nickname(oAuth2Response.getNickname())
                     .build();
-            memberRepository.save(member);
+            memberRepository.save(newMember);
             memberRoleRepository.save(MemberRole.builder()
                     .roleName("ROLE_USER")
-                    .member(member)
+                    .member(newMember)
                     .build());
-            return member;
+            return newMember;
         }
-        return tmpMember.get();
+        return member.get();
     }
 
-    private CustomOAuth2User createOAuth2User(Member member) {
+    private CustomUserDetails createOAuth2User(Member member) {
         List<MemberRole> customRoles = memberRoleRepository.findAllByMemberId(member.getId());
         List<GrantedAuthority> authorities = new ArrayList<>();
 
@@ -78,9 +78,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 authorities.add(new SimpleGrantedAuthority(memberRole.getRoleName()));
             }
         }
-        return CustomOAuth2User.builder()
+        return CustomUserDetails.builder()
                 .username(member.getEmail())
-                .name(member.getNickname())
                 .authorities(authorities)
                 .build();
     }

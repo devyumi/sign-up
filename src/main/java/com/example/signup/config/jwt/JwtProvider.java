@@ -1,6 +1,6 @@
 package com.example.signup.config.jwt;
 
-import com.example.signup.config.auth.CustomUserDetailsService;
+import com.example.signup.config.auth.CustomUserDetails;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -12,7 +12,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -27,17 +26,16 @@ public class JwtProvider {
     private static final String AUTHORITIES_KEY = "auth";
     private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 30;
     private final Key key;
-
-    private final CustomUserDetailsService customUserDetailsService;
     private final Logger log = LoggerFactory.getLogger(JwtProvider.class);
 
-    public JwtProvider(@Value("${jwt.secret}") String secretKey, CustomUserDetailsService customUserDetailsService) {
+    public JwtProvider(@Value("${jwt.secret}") String secretKey) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
-        this.customUserDetailsService = customUserDetailsService;
     }
 
     public String createToken(Authentication authentication) {
+        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
@@ -49,7 +47,7 @@ public class JwtProvider {
         return BEARER_PREFIX +
                 Jwts.builder()
                         .setHeader(header)
-                        .setSubject(authentication.getName())
+                        .setSubject(customUserDetails.getUsername())
                         .claim(AUTHORITIES_KEY, authorities)
                         .setExpiration(new Date(new Date().getTime() + ACCESS_TOKEN_EXPIRE_TIME))
                         .signWith(key, SignatureAlgorithm.HS256)
@@ -58,7 +56,6 @@ public class JwtProvider {
 
     public String resolveToken(Cookie[] cookies) {
         String bearerToken = "";
-
         if (cookies != null) {
             for (Cookie c : cookies) {
                 String name = c.getName().toString();
@@ -92,7 +89,15 @@ public class JwtProvider {
 
     public Authentication getAuthentication(String token) {
         Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
-        UserDetails principal = customUserDetailsService.loadUserByUsername(claims.getSubject());
-        return new UsernamePasswordAuthenticationToken(principal, "", principal.getAuthorities());
+        Collection<? extends GrantedAuthority> authorities =
+                Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList());
+
+        CustomUserDetails customUserDetails = CustomUserDetails.builder()
+                .username(claims.getSubject())
+                .authorities(authorities)
+                .build();
+        return new UsernamePasswordAuthenticationToken(customUserDetails, "", customUserDetails.getAuthorities());
     }
 }

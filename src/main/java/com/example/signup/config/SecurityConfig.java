@@ -51,6 +51,7 @@ public class SecurityConfig {
                         httpSecurityOAuth2LoginConfigurer
                                 .loginPage("/signin")
                                 .defaultSuccessUrl("/home")
+                                .successHandler(new SignInSuccess(jwtProvider))
                                 .userInfoEndpoint(userInfoEndpointConfig ->
                                         userInfoEndpointConfig
                                                 .userService(customOAuth2UserService)))
