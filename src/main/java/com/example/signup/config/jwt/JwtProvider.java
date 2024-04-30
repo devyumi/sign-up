@@ -22,9 +22,9 @@ import java.util.stream.Collectors;
 @Component
 public class JwtProvider {
     public static final String AUTHORIZATION_HEADER = "Authorization";
+    public static final String REFRESH_HEADER = "Refresh";
     public static final String BEARER_PREFIX = "Bearer ";
     private static final String AUTHORITIES_KEY = "auth";
-    private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 30;
     private final Key key;
     private final Logger log = LoggerFactory.getLogger(JwtProvider.class);
 
@@ -33,7 +33,7 @@ public class JwtProvider {
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String createToken(Authentication authentication) {
+    public String createToken(String category, Authentication authentication, Long expirationTime) {
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
 
         String authorities = authentication.getAuthorities().stream()
@@ -48,8 +48,9 @@ public class JwtProvider {
                 Jwts.builder()
                         .setHeader(header)
                         .setSubject(customUserDetails.getUsername())
+                        .claim("category", category)
                         .claim(AUTHORITIES_KEY, authorities)
-                        .setExpiration(new Date(new Date().getTime() + ACCESS_TOKEN_EXPIRE_TIME))
+                        .setExpiration(new Date(new Date().getTime() + expirationTime))
                         .signWith(key, SignatureAlgorithm.HS256)
                         .compact();
     }

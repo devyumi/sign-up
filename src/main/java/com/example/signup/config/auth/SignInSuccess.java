@@ -29,15 +29,18 @@ public class SignInSuccess extends SimpleUrlAuthenticationSuccessHandler {
         log.info("로그인 성공");
         log.info("username: {} | authorities: {}", auth.getUsername(), auth.getAuthorities());
 
-        String token = jwtProvider.createToken(authentication);
-        log.info("token {}", token);
-        response.addCookie(createCookie(JwtProvider.AUTHORIZATION_HEADER, token));
+        String accessToken = jwtProvider.createToken("access", authentication, 1000 * 60 * 10L);
+        String refreshToken = jwtProvider.createToken("refresh", authentication, 1000 * 60 * 60 * 24L);
+        log.info("access: {}", accessToken);
+        log.info("refresh: {}", refreshToken);
+        response.setHeader(JwtProvider.AUTHORIZATION_HEADER, accessToken);
+        response.addCookie(createCookie(JwtProvider.REFRESH_HEADER, refreshToken));
         response.sendRedirect("/home");
     }
 
     private Cookie createCookie(String key, String value) throws UnsupportedEncodingException {
         Cookie jwtCookie = new Cookie(key, URLEncoder.encode(value, "UTF-8"));
-        jwtCookie.setMaxAge(60 * 30);
+        jwtCookie.setMaxAge(24 * 60 * 60);
         jwtCookie.setPath("/");
         jwtCookie.setHttpOnly(true);
         return jwtCookie;
