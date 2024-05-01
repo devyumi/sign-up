@@ -12,15 +12,13 @@ public class Member extends Time {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String accessToken;
     private String email;
     private String password;
     private String nickname;
 
     @Builder
-    public Member(Long id, String accessToken, String email, String password, String nickname) {
+    public Member(Long id, String email, String password, String nickname) {
         this.id = id;
-        this.accessToken = accessToken;
         this.email = email;
         this.password = password;
         this.nickname = nickname;
