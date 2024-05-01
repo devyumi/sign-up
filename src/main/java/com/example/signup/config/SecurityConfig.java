@@ -4,6 +4,7 @@ import com.example.signup.config.auth.*;
 import com.example.signup.config.jwt.JwtAuthenticationFilter;
 import com.example.signup.config.jwt.JwtProvider;
 import com.example.signup.config.oauth.CustomOAuth2UserService;
+import com.example.signup.service.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.Customizer;
@@ -24,6 +25,8 @@ import org.springframework.stereotype.Component;
 public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final SignInSuccess signInSuccess;
+    private final TokenService tokenService;
     private final JwtProvider jwtProvider;
 
     @Bean
@@ -45,13 +48,13 @@ public class SecurityConfig {
                                 .loginPage("/signin")
                                 .loginProcessingUrl("/signin")
                                 .defaultSuccessUrl("/home")
-                                .successHandler(new SignInSuccess(jwtProvider))
+                                .successHandler(signInSuccess)
                                 .failureHandler(new SignInFail()))
                 .oauth2Login(httpSecurityOAuth2LoginConfigurer ->
                         httpSecurityOAuth2LoginConfigurer
                                 .loginPage("/signin")
                                 .defaultSuccessUrl("/home")
-                                .successHandler(new SignInSuccess(jwtProvider))
+                                .successHandler(signInSuccess)
                                 .userInfoEndpoint(userInfoEndpointConfig ->
                                         userInfoEndpointConfig
                                                 .userService(customOAuth2UserService)))
@@ -68,7 +71,7 @@ public class SecurityConfig {
                                 .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
                                 .accessDeniedHandler(new CustomAccessDeniedHandler()))
                 .userDetailsService(customUserDetailsService)
-                .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JwtAuthenticationFilter(jwtProvider, tokenService), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

@@ -1,6 +1,7 @@
 package com.example.signup.config.jwt;
 
 import com.example.signup.config.auth.SignInSuccess;
+import com.example.signup.service.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,10 +17,12 @@ import java.io.IOException;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtProvider jwtProvider;
+    private final TokenService tokenService;
     private final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-    public JwtAuthenticationFilter(JwtProvider jwtProvider) {
+    public JwtAuthenticationFilter(JwtProvider jwtProvider, TokenService tokenService) {
         this.jwtProvider = jwtProvider;
+        this.tokenService = tokenService;
     }
 
     @Override
@@ -34,16 +37,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (!jwtProvider.validateToken(accessToken)) {
             if (jwtProvider.validateToken(refreshToken)) {
-                accessToken = jwtProvider.createToken(jwtProvider.getUsername(refreshToken), jwtProvider.getAuthorities(refreshToken), JwtProvider.ACCESS_EXPIRATION_TIME);
-                refreshToken = jwtProvider.createToken(jwtProvider.getUsername(refreshToken), jwtProvider.getAuthorities(refreshToken), JwtProvider.REFRESH_EXPIRATION_TIME);
-                response.addCookie(SignInSuccess.createCookie(JwtProvider.AUTHORIZATION_HEADER, accessToken));
-                response.addCookie(SignInSuccess.createCookie(JwtProvider.REFRESH_HEADER, refreshToken));
-                log.info("Access Token 재발급");
-                log.info("Refresh Token 재발급");
+                if (tokenService.isExistToken(refreshToken)) {
+                    tokenService.deleteToken(refreshToken);
 
-                Authentication authentication = jwtProvider.getAuthentication(accessToken);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                filterChain.doFilter(request, response);
+                    accessToken = jwtProvider.createToken(jwtProvider.getUsername(refreshToken), jwtProvider.getAuthorities(refreshToken), JwtProvider.ACCESS_EXPIRATION_TIME);
+                    refreshToken = jwtProvider.createToken(jwtProvider.getUsername(refreshToken), jwtProvider.getAuthorities(refreshToken), JwtProvider.REFRESH_EXPIRATION_TIME);
+                    tokenService.saveToken(jwtProvider.getUsername(refreshToken.substring(7)), refreshToken);
+
+                    response.addCookie(SignInSuccess.createCookie(JwtProvider.AUTHORIZATION_HEADER, accessToken));
+                    response.addCookie(SignInSuccess.createCookie(JwtProvider.REFRESH_HEADER, refreshToken));
+                    log.info("Access Token 재발급");
+                    log.info("Refresh Token 재발급");
+
+                    Authentication authentication = jwtProvider.getAuthentication(accessToken);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    filterChain.doFilter(request, response);
+                } else {
+                    log.error("Refresh Token Tampered");
+                    filterChain.doFilter(request, response);
+                }
             } else {
                 filterChain.doFilter(request, response);
             }

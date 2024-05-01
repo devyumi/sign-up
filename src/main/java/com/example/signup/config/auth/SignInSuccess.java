@@ -1,6 +1,7 @@
 package com.example.signup.config.auth;
 
 import com.example.signup.config.jwt.JwtProvider;
+import com.example.signup.service.TokenService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class SignInSuccess extends SimpleUrlAuthenticationSuccessHandler {
+    private final TokenService tokenService;
     private final JwtProvider jwtProvider;
     private final Logger log = LoggerFactory.getLogger(SignInSuccess.class);
 
@@ -34,6 +36,7 @@ public class SignInSuccess extends SimpleUrlAuthenticationSuccessHandler {
 
         String accessToken = jwtProvider.createToken(auth.getUsername(), getAuthorities(auth.getAuthorities()), JwtProvider.ACCESS_EXPIRATION_TIME);
         String refreshToken = jwtProvider.createToken(auth.getUsername(), getAuthorities(auth.getAuthorities()), JwtProvider.REFRESH_EXPIRATION_TIME);
+        tokenService.saveToken(auth.getUsername(), refreshToken);
         log.info("Access Token: {}", accessToken);
         log.info("Refresh Token: {}", refreshToken);
 
