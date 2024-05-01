@@ -1,5 +1,6 @@
 package com.example.signup.config.jwt;
 
+import com.example.signup.config.auth.SignInSuccess;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,14 +24,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String token = jwtProvider.resolveToken(request.getCookies());
+        String accessToken = jwtProvider.resolveToken(request.getCookies(), JwtProvider.AUTHORIZATION_HEADER);
+        String refreshToken = jwtProvider.resolveToken(request.getCookies(), JwtProvider.REFRESH_HEADER);
 
-        if (StringUtils.hasText(token) && jwtProvider.validateToken(token)) {
-            Authentication authentication = jwtProvider.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        } else {
-            log.error("유효한 JWT가 없습니다, uri: {}", request.getRequestURI());
+        if (!StringUtils.hasText(accessToken)) {
+            filterChain.doFilter(request, response);
+            return;
         }
-        filterChain.doFilter(request, response);
+
+        if (!jwtProvider.validateToken(accessToken)) {
+            if (jwtProvider.validateToken(refreshToken)) {
+                accessToken = jwtProvider.createToken(jwtProvider.getUsername(refreshToken), jwtProvider.getAuthorities(refreshToken), JwtProvider.ACCESS_EXPIRATION_TIME);
+                refreshToken = jwtProvider.createToken(jwtProvider.getUsername(refreshToken), jwtProvider.getAuthorities(refreshToken), JwtProvider.REFRESH_EXPIRATION_TIME);
+                response.addCookie(SignInSuccess.createCookie(JwtProvider.AUTHORIZATION_HEADER, accessToken));
+                response.addCookie(SignInSuccess.createCookie(JwtProvider.REFRESH_HEADER, refreshToken));
+                log.info("Access Token 재발급");
+                log.info("Refresh Token 재발급");
+
+                Authentication authentication = jwtProvider.getAuthentication(accessToken);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                filterChain.doFilter(request, response);
+            } else {
+                filterChain.doFilter(request, response);
+            }
+        } else {
+            Authentication authentication = jwtProvider.getAuthentication(accessToken);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            filterChain.doFilter(request, response);
+        }
     }
 }

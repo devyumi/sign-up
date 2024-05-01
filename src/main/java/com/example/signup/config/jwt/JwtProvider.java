@@ -25,6 +25,8 @@ public class JwtProvider {
     public static final String REFRESH_HEADER = "Refresh";
     public static final String BEARER_PREFIX = "Bearer ";
     private static final String AUTHORITIES_KEY = "auth";
+    public static final Long ACCESS_EXPIRATION_TIME = 1000 * 60 * 1L;
+    public static final Long REFRESH_EXPIRATION_TIME = 1000 * 60 * 2L;
     private final Key key;
     private final Logger log = LoggerFactory.getLogger(JwtProvider.class);
 
@@ -33,13 +35,7 @@ public class JwtProvider {
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String createToken(String category, Authentication authentication, Long expirationTime) {
-        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-
-        String authorities = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
-
+    public String createToken(String username, String authorities, Long expirationTime) {
         Map<String, Object> header = new HashMap<>();
         header.put("typ", "JWT");
         header.put("alg", "HS256");
@@ -47,20 +43,19 @@ public class JwtProvider {
         return BEARER_PREFIX +
                 Jwts.builder()
                         .setHeader(header)
-                        .setSubject(customUserDetails.getUsername())
-                        .claim("category", category)
+                        .setSubject(username)
                         .claim(AUTHORITIES_KEY, authorities)
                         .setExpiration(new Date(new Date().getTime() + expirationTime))
                         .signWith(key, SignatureAlgorithm.HS256)
                         .compact();
     }
 
-    public String resolveToken(Cookie[] cookies) {
+    public String resolveToken(Cookie[] cookies, String headerName) {
         String bearerToken = "";
         if (cookies != null) {
             for (Cookie c : cookies) {
                 String name = c.getName().toString();
-                if (name.equals(AUTHORIZATION_HEADER.toString())) {
+                if (name.equals(headerName)) {
                     bearerToken = c.getValue();
                 }
             }
@@ -100,5 +95,13 @@ public class JwtProvider {
                 .authorities(authorities)
                 .build();
         return new UsernamePasswordAuthenticationToken(customUserDetails, "", customUserDetails.getAuthorities());
+    }
+
+    public String getUsername(String token) {
+        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject().toString();
+    }
+
+    public String getAuthorities(String token) {
+        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().get(AUTHORITIES_KEY, String.class);
     }
 }
