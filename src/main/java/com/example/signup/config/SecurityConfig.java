@@ -26,6 +26,7 @@ public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final SignInSuccess signInSuccess;
+    private final SignOutSuccess signOutSuccess;
     private final TokenService tokenService;
     private final JwtProvider jwtProvider;
 
@@ -64,7 +65,7 @@ public class SecurityConfig {
                                 .logoutSuccessUrl("/home")
                                 .deleteCookies(JwtProvider.AUTHORIZATION_HEADER)
                                 .deleteCookies(JwtProvider.REFRESH_HEADER)
-                                .logoutSuccessHandler(new SignOutSuccess()))
+                                .logoutSuccessHandler(signOutSuccess))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .exceptionHandling(ExceptionHandlingConfigurer ->
                         ExceptionHandlingConfigurer
