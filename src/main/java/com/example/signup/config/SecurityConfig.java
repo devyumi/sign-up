@@ -7,7 +7,6 @@ import com.example.signup.config.oauth.CustomOAuth2UserService;
 import com.example.signup.service.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -27,6 +26,7 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final SignInSuccess signInSuccess;
     private final SignOutSuccess signOutSuccess;
+    private final SignInFail signInFail;
     private final TokenService tokenService;
     private final JwtProvider jwtProvider;
 
@@ -34,43 +34,45 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(CsrfConfigurer::disable)
-                .cors(Customizer.withDefaults())
-                .sessionManagement(httpSecuritySessionManagementConfigurer ->
-                        httpSecuritySessionManagementConfigurer
-                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
-                        authorizationManagerRequestMatcherRegistry
-                                .requestMatchers("/signup/**", "/signin/**").permitAll()
-                                .requestMatchers("/search/members").hasRole("ADMIN")
-                                .requestMatchers("/guestbook/**").hasAnyRole("ADMIN", "USER")
-                                .anyRequest().permitAll())
-                .formLogin(AbstractHttpConfigurer ->
-                        AbstractHttpConfigurer
-                                .loginPage("/signin")
-                                .loginProcessingUrl("/signin")
-                                .defaultSuccessUrl("/home")
-                                .successHandler(signInSuccess)
-                                .failureHandler(new SignInFail()))
-                .oauth2Login(httpSecurityOAuth2LoginConfigurer ->
-                        httpSecurityOAuth2LoginConfigurer
-                                .loginPage("/signin")
-                                .defaultSuccessUrl("/home")
-                                .successHandler(signInSuccess)
-                                .userInfoEndpoint(userInfoEndpointConfig ->
-                                        userInfoEndpointConfig
-                                                .userService(customOAuth2UserService)))
-                .logout(httpSecurityLogoutConfigurer ->
-                        httpSecurityLogoutConfigurer
-                                .logoutUrl("/signout")
-                                .logoutSuccessUrl("/home")
-                                .deleteCookies(JwtProvider.AUTHORIZATION_HEADER)
-                                .deleteCookies(JwtProvider.REFRESH_HEADER)
-                                .logoutSuccessHandler(signOutSuccess))
+
+                .sessionManagement(sessionConfigurer -> sessionConfigurer
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                .authorizeHttpRequests(authorization -> authorization
+                        .requestMatchers("/signup/**", "/signin/**").permitAll()
+                        .requestMatchers("/search/members").hasRole("ADMIN")
+                        .requestMatchers("/guestbook/**").hasAnyRole("ADMIN", "USER")
+                        .anyRequest().permitAll())
+
+                .formLogin(loginConfigurer -> loginConfigurer
+                        .loginPage("/signin")
+                        .loginProcessingUrl("/signin")
+                        .defaultSuccessUrl("/home")
+                        .successHandler(signInSuccess)
+                        .failureHandler(signInFail))
+
+                .oauth2Login(oAuth2LoginConfigurer -> oAuth2LoginConfigurer
+                        .loginPage("/signin")
+                        .defaultSuccessUrl("/home")
+                        .successHandler(signInSuccess)
+                        .userInfoEndpoint(userInfoEndpointConfig ->
+                                userInfoEndpointConfig
+                                        .userService(customOAuth2UserService)))
+
+                .logout(logoutConfigurer -> logoutConfigurer
+                        .logoutUrl("/signout")
+                        .logoutSuccessUrl("/home")
+                        .deleteCookies(JwtProvider.AUTHORIZATION_HEADER)
+                        .deleteCookies(JwtProvider.REFRESH_HEADER)
+                        .logoutSuccessHandler(signOutSuccess))
+
                 .httpBasic(AbstractHttpConfigurer::disable)
+
                 .exceptionHandling(ExceptionHandlingConfigurer ->
                         ExceptionHandlingConfigurer
                                 .authenticationEntryPoint(new CustomAuthenticationEntryPoint())
                                 .accessDeniedHandler(new CustomAccessDeniedHandler()))
+
                 .userDetailsService(customUserDetailsService)
                 .addFilterBefore(new JwtAuthenticationFilter(jwtProvider, tokenService), UsernamePasswordAuthenticationFilter.class);
         return http.build();
