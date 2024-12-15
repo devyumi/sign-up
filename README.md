@@ -1,5 +1,5 @@
-# 🌟 Spring Security & OAuth 2.0 & JWT 로그인 구현 프로젝트
-<p>OAuth2.0, JWT, Spring Security의 학습을 목적으로 하여 로그인 및 회원가입 기능을 구현한 프로젝트입니다.</p>
+# 🌟 Spring Security, OAuth 2.0, JWT 로그인 구현 프로젝트
+<p>OAuth2.0, JWT, Spring Security, OAuth 2.0, JWT의 학습을 목적으로 하여 로그인 및 회원가입 기능을 구현한 프로젝트입니다.</p>
 
 [<img src="https://img.shields.io/badge/velog 바로가기-20C997?style=for-the-badge&logo=velog&logoColor=white"/>](https://velog.io/@devyumi/%EA%B0%9C%EC%9D%B8-Spring-Security-OAuth2-JWT-%EB%A1%9C%EA%B7%B8%EC%9D%B8)
 
